@@ -1,0 +1,70 @@
+# Combined template for IT-company GST invoices.
+# It bundles both layouts as "variants". On each invoice the extractor detects the
+# vendor (by keyword) and applies the matching layout automatically - so a single
+# template entry extracts BOTH Novatech (CGST+SGST) and Stellar (IGST) invoices,
+# and you can upload a mixed batch of them together.
+vendor: "IT GST Invoices (Novatech / Stellar)"
+
+variants:
+  # ---- Novatech Software Solutions (intra-state: CGST + SGST) ----
+  - vendor: "Novatech Software Solutions Pvt Ltd"
+    identify: {keyword: "Novatech Software Solutions"}
+    fields:
+      invoice_number:  {anchor: "Invoice No", type: text}
+      invoice_date:    {anchor: "Invoice Date", type: date}
+      po_number:       {anchor: "PO Number", type: text}
+      supplier_gstin:  {anchor: "GSTIN", occurrence: 1, type: text, max_words: 1}
+      bill_to:         {anchor: "Bill To", below: 1, max_words: 4, type: text}
+      customer_gstin:  {anchor: "GSTIN", occurrence: 2, type: text, max_words: 1}
+      place_of_supply: {anchor: "Place of", type: text, max_words: 3}
+    line_items:
+      header_anchor: "Description"
+      end_anchor: "Grand Total"
+      row_tol: 6
+      columns:
+        - {name: description,   x_min: 55,  x_max: 200, type: text}
+        - {name: hsn_sac,       x_min: 200, x_max: 245, type: text}
+        - {name: quantity,      x_min: 245, x_max: 270, type: number}
+        - {name: rate,          x_min: 270, x_max: 325, type: money}
+        - {name: taxable_value, x_min: 325, x_max: 372, type: money}
+        - {name: gst_pct,       x_min: 372, x_max: 400, type: number}
+        - {name: cgst,          x_min: 400, x_max: 450, type: money}
+        - {name: sgst,          x_min: 450, x_max: 500, type: money}
+        - {name: total,         x_min: 500, x_max: 560, type: money}
+      derive_totals:
+        subtotal: {sum: taxable_value}
+        cgst:     {sum: cgst}
+        sgst:     {sum: sgst}
+        total:    {sum: total}
+        tax:      {diff: [total, subtotal]}
+
+  # ---- Stellar Systems India (inter-state: IGST) ----
+  - vendor: "Stellar Systems India Pvt Ltd"
+    identify: {keyword: "Stellar Systems India"}
+    fields:
+      invoice_number:  {anchor: "Bill No", type: text}
+      invoice_date:    {anchor: "Bill Date", type: date}
+      po_number:       {anchor: "Order Ref", type: text}
+      supplier_gstin:  {anchor: "GSTIN", occurrence: 1, type: text, max_words: 1}
+      bill_to:         {anchor: "Billed To", below: 1, max_words: 4, type: text}
+      customer_gstin:  {anchor: "GSTIN", occurrence: 2, type: text, max_words: 1}
+      place_of_supply: {anchor: "Place of", type: text, max_words: 3}
+      supply_type:     {anchor: "Supply Type", type: text, max_words: 1}
+    line_items:
+      header_anchor: "Particulars"
+      end_anchor: "Invoice Total"
+      row_tol: 6
+      columns:
+        - {name: description,   x_min: 60,  x_max: 212, type: text}
+        - {name: hsn_sac,       x_min: 212, x_max: 262, type: text}
+        - {name: quantity,      x_min: 262, x_max: 298, type: number}
+        - {name: unit_price,    x_min: 298, x_max: 352, type: money}
+        - {name: taxable_value, x_min: 352, x_max: 410, type: money}
+        - {name: igst_pct,      x_min: 410, x_max: 440, type: number}
+        - {name: igst_amt,      x_min: 440, x_max: 500, type: money}
+        - {name: total,         x_min: 500, x_max: 560, type: money}
+      derive_totals:
+        subtotal: {sum: taxable_value}
+        igst:     {sum: igst_amt}
+        total:    {sum: total}
+        tax:      {diff: [total, subtotal]}

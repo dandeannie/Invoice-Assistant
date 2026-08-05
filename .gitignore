@@ -1,0 +1,28 @@
+# Virtual environments
+venv312/
+venv/
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Secrets and environment variables
+.env
+*.env
+
+# Generated output
+output/*.xlsx
+output/*.csv
+
+# Streamlit log
+streamlit_log.txt
+
+# Runtime output — business-sensitive, must not be committed (FIX 4)
+output/audit_log.csv
+output/processing_history.csv
+
+# OS files
+.DS_Store
+Thumbs.db

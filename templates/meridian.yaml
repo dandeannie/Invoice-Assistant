@@ -1,0 +1,41 @@
+# Meridian Technologies Pvt Ltd — intra-state GST invoice (CGST + SGST).
+# Built from a single sample invoice. Handles 2-3 line wrapping descriptions,
+# GST-exempt lines (blank CGST/SGST), and a table that runs across 2 pages.
+vendor: "Meridian Technologies Pvt Ltd"
+
+identify:
+  keyword: "Meridian Technologies"
+
+fields:
+  invoice_number: {anchor: "Invoice No", type: text}
+  invoice_date:   {anchor: "Invoice Date", type: date}
+  po_number:      {anchor: "PO Number", type: text}
+  due_date:        {anchor: "Due Date", type: date}
+  supplier_gstin:  {anchor: "GSTIN", occurrence: 1, type: text, max_words: 1}
+  pan:             {anchor: "PAN", type: text, max_words: 1}
+  cin:             {anchor: "CIN", type: text, max_words: 1}
+  bill_to:         {anchor: "Billed To", below: 1, max_words: 4, type: text}
+  customer_gstin:  {anchor: "GSTIN", occurrence: 2, type: text, max_words: 1}
+  place_of_supply: {anchor: "Place of", type: text, max_words: 3}
+
+line_items:
+  header_anchor: "Description"
+  end_anchor: "Sub Total"
+  row_tol: 6
+  columns:
+    - {name: sl_no,         x_min: 34,  x_max: 50,  type: text}
+    - {name: description,   x_min: 50,  x_max: 205, type: text}
+    - {name: hsn_sac,       x_min: 205, x_max: 250, type: text}
+    - {name: quantity,      x_min: 250, x_max: 280, type: number}
+    - {name: rate,          x_min: 280, x_max: 330, type: money}
+    - {name: taxable_value, x_min: 330, x_max: 378, type: money}
+    - {name: gst_pct,       x_min: 378, x_max: 415, type: text}
+    - {name: cgst,          x_min: 415, x_max: 465, type: money}
+    - {name: sgst,          x_min: 465, x_max: 515, type: money}
+    - {name: total,         x_min: 515, x_max: 570, type: money}
+  derive_totals:
+    subtotal: {sum: taxable_value}
+    cgst:     {sum: cgst}
+    sgst:     {sum: sgst}
+    total:    {sum: total}
+    tax:      {diff: [total, subtotal]}

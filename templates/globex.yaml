@@ -1,0 +1,41 @@
+# =====================================================================
+#  VENDOR TEMPLATE:  Globex Ltd
+# ---------------------------------------------------------------------
+#  Notice this vendor uses DIFFERENT wording (Bill No. instead of Invoice
+#  Number, Net Amount instead of Subtotal, etc.) and a different layout.
+#  Only this file changes - the code never does. That is the whole idea.
+# =====================================================================
+
+vendor: "Globex Ltd"
+
+identify:
+  keyword: "GLOBEX"
+
+fields:
+  invoice_number:
+    anchor: "Bill No"
+    type: text
+  invoice_date:
+    anchor: "Dated"
+    type: text
+  po_number:
+    anchor: "Order Ref"
+    type: text
+  subtotal:
+    anchor: "Net Amount"
+    type: money
+  tax:
+    anchor: "GST"
+    type: money
+  total:
+    anchor: "Grand Total"
+    type: money
+
+line_items:
+  header_anchor: "Item"
+  end_anchor: "Net"
+  columns:
+    - {name: description, header: "Item",  type: text}
+    - {name: quantity,    header: "Qty",   type: money}
+    - {name: unit_price,  header: "Rate",  type: money}
+    - {name: amount,      header: "Value", type: money}

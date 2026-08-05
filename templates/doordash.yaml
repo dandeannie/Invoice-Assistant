@@ -1,0 +1,33 @@
+# DoorDash order / delivery receipt.
+# Handles both simple items and items with bulleted option lines, and multi-line
+# item names (continuation lines are merged into the item above).
+vendor: "DoorDash Order"
+
+identify:
+  keyword: "For any urgent order adjustment"
+
+fields:
+  invoice_number: {anchor: "Order Number", type: text, max_words: 1}
+  # the store is printed to the LEFT of "Placed on" in the footer line
+  store:          {anchor: "Placed on", before: 4, type: text}
+  # these sit BELOW their column headings
+  customer:       {anchor: "Customer", below: 1, max_words: 3, type: text}
+  order_size:     {anchor: "Order Size", below: 1, max_words: 2, type: text}
+  pickup_time:    {anchor: "Pickup Time", below: 1, max_words: 4, type: text}
+  invoice_date:   {anchor: "Pickup Time", below: 2, max_words: 3, type: date}
+  payment:        {anchor: "Payment", type: text, max_words: 1}
+  # 'Subtotal' and 'Total' also appear as column headings / 'Total Items',
+  # so take the LAST occurrence - the real totals row
+  subtotal:       {anchor: "Subtotal", occurrence: last, type: money}
+  tax:            {anchor: "Tax", nth: 2, type: money}
+  total:          {anchor: "Total", occurrence: last, type: money}
+
+line_items:
+  header_anchor: "Item"
+  end_anchor: "End of Order"
+  row_tol: 6
+  columns:
+    - {name: quantity,    x_min: 40,  x_max: 95,  type: number}
+    - {name: description, x_min: 95,  x_max: 420, type: text}
+    - {name: unit_price,  x_min: 420, x_max: 495, type: money}
+    - {name: amount,      x_min: 495, x_max: 580, type: money}

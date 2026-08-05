@@ -1,0 +1,29 @@
+# Anthropic, PBC (Claude subscription invoice) - USD, India GST registered supplier.
+# Labels are separated from values by whitespace rather than a colon.
+vendor: "Anthropic, PBC"
+
+identify:
+  keyword: "Anthropic, PBC"
+
+fields:
+  invoice_number:  {anchor: "Invoice number", type: text, max_words: 1}
+  invoice_date:    {anchor: "Date of issue", type: date, max_words: 3}
+  due_date:        {anchor: "Date due", type: date, max_words: 3}
+  supplier_gstin:  {anchor: "VAT Registration", below: 1, type: text, max_words: 1}
+  bill_to:         {anchor: "Bill to", below: 1, type: text, max_words: 5}
+  customer_gstin:  {anchor: "IN GST", type: text, max_words: 1}
+  currency:        {anchor: "Amount due", nth: 1, type: text}
+  subtotal:        {anchor: "Subtotal", type: money}
+  total:           {anchor: "Total", occurrence: last, type: money}
+  amount_due:      {anchor: "Amount due", type: money}
+  hsn_code:        {anchor: "HSN Code", type: text, max_words: 1}
+
+line_items:
+  header_anchor: "Description"
+  end_anchor: "Subtotal"
+  row_tol: 6
+  columns:
+    - {name: description, x_min: 25,  x_max: 400, type: text}
+    - {name: quantity,    x_min: 400, x_max: 450, type: number}
+    - {name: unit_price,  x_min: 450, x_max: 520, type: money}
+    - {name: amount,      x_min: 520, x_max: 600, type: money}

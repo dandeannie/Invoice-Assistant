@@ -1,0 +1,48 @@
+# =====================================================================
+#  VENDOR TEMPLATE:  ACME Corporation
+# ---------------------------------------------------------------------
+#  You build ONE of these per vendor. Every invoice from this vendor is
+#  then extracted automatically. To onboard a new vendor, copy this file,
+#  rename it (e.g. globex.yaml), and change the labels to match that
+#  vendor's invoice wording.
+# =====================================================================
+
+vendor: "ACME Corporation"
+
+# A word/phrase that appears on this vendor's invoices. Used to double-check
+# you picked the right template for the file.
+identify:
+  keyword: "ACME Corporation"
+
+# ---- Header fields --------------------------------------------------
+# 'anchor' is the label printed on the invoice. The tool grabs the text
+# printed just to the RIGHT of that label.
+fields:
+  invoice_number:
+    anchor: "Invoice Number"
+    type: text
+  invoice_date:
+    anchor: "Invoice Date"
+    type: text
+  po_number:
+    anchor: "PO Number"
+    type: text
+  subtotal:
+    anchor: "Subtotal"
+    type: money
+  tax:
+    anchor: "Tax"
+    type: money
+  total:
+    anchor: "Total Due"
+    type: money
+
+# ---- Line-item table ------------------------------------------------
+line_items:
+  header_anchor: "Description"   # a word that appears in the table's header row
+  end_anchor: "Subtotal"        # reading stops when this word is reached
+  columns:
+    - {name: description, header: "Description", type: text}
+    - {name: quantity,    header: "Quantity",    type: money}
+    - {name: unit_price,  header: "Unit Price",  type: money}
+    - {name: amount,      header: "Amount",      type: money}

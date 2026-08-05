@@ -1,0 +1,95 @@
+default:
+  required:
+  - invoice_date
+  require_any:
+  - - invoice_number
+    - bill_number
+    - order_number
+    - receipt_number
+  require_bill_from: true
+  require_bill_to: false
+  require_tax_id: false
+  require_regulatory: false
+  require_line_fields:
+  - description
+  require_tax_breakup: false
+  require_subtotal: false
+  require_total: true
+  regex: {}
+  max_total: null
+  min_total: null
+  date_not_future: true
+  date_max_age_days: null
+  allowed_tax_rates: null
+  require_line_items: true
+vendors:
+  it_gst_invoices:
+    required:
+    - invoice_date
+    require_any:
+    - - invoice_number
+      - bill_number
+      - order_number
+    require_bill_from: true
+    require_bill_to: true
+    require_tax_id: true
+    require_regulatory: true
+    require_line_fields:
+    - description
+    - quantity
+    - unit_rate
+    require_tax_breakup: true
+    require_subtotal: true
+    require_total: true
+    allowed_tax_rates:
+    - 0
+    - 0.25
+    - 3
+    - 5
+    - 12
+    - 18
+    - 28
+  doordash:
+    required: []
+    require_any:
+    - - invoice_number
+      - bill_number
+      - order_number
+      - receipt_number
+    require_bill_from: true
+    require_bill_to: false
+    require_tax_id: false
+    require_regulatory: false
+    require_line_fields:
+    - description
+    require_tax_breakup: false
+    require_subtotal: false
+    require_total: true
+    require_line_items: true
+    date_not_future: true
+  meridian:
+    required:
+    - invoice_date
+    require_any:
+    - - invoice_number
+      - bill_number
+      - order_number
+    require_bill_from: true
+    require_bill_to: true
+    require_tax_id: true
+    require_regulatory: true
+    require_line_fields:
+    - description
+    - quantity
+    - unit_rate
+    require_tax_breakup: true
+    require_subtotal: true
+    require_total: true
+    allowed_tax_rates:
+    - 0
+    - 0.25
+    - 3
+    - 5
+    - 12
+    - 18
+    - 28

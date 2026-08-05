@@ -1,0 +1,54 @@
+# =====================================================================
+#  VENDOR TEMPLATE:  IndiGo (InterGlobe Aviation Limited)
+# ---------------------------------------------------------------------
+#  A GST tax invoice. Two things make it tricky, both handled here:
+#    * spaced colons ("Number : value")  -> the engine skips the stray ":"
+#    * a dense tax table whose numbers can WRAP onto two lines in the
+#      Grand Total row -> so we DON'T read that row. Instead we read the
+#      clean line-item rows by their column positions and ADD THEM UP to
+#      get the invoice subtotal / tax / total. More reliable.
+#
+#  Because every IndiGo invoice has the exact same layout, the fixed
+#  column positions (x_min/x_max) below work for all of them.
+# =====================================================================
+
+vendor: "IndiGo (InterGlobe Aviation)"
+
+identify:
+  keyword: "InterGlobe Aviation"
+
+fields:
+  invoice_number:
+    anchor: "Number"
+    type: text
+  invoice_date:
+    anchor: "Date"
+    type: text
+
+  # vendor-specific header fields -> become extra columns automatically
+  passenger_name: {anchor: "Passenger Name", max_words: 4, type: text}
+  pnr:            {anchor: "PNR",             max_words: 1, type: text}
+  flight_no:      {anchor: "Flight No",       max_words: 3, type: text}
+  from:           {anchor: "From",            max_words: 1, type: text}
+  to:             {anchor: "To",              max_words: 1, type: text}
+  place_of_supply: {anchor: "Place of Supply", max_words: 2, type: text}
+  currency:       {anchor: "Currency",        max_words: 1, type: text}
+  supplier_gstin: {anchor: "GSTIN",           max_words: 1, type: text}
+
+# ---- Line-item table (read by fixed column positions) ----------------
+line_items:
+  header_anchor: "Description"   # where the table starts
+  end_anchor: "Grand Total"      # where it stops (we read the rows above this)
+  row_tol: 6                     # how close vertically words must be to share a row
+  columns:
+    # name              where the column sits (points from left)   what it holds
+    - {name: description, x_min: 40,  x_max: 120, type: text}   # service name
+    - {name: taxable,     x_min: 145, x_max: 195, type: money}  # taxable value
+    - {name: line_total,  x_min: 215, x_max: 265, type: money}  # taxable + non-taxable
+    - {name: amount,      x_min: 505, x_max: 545, type: money}  # total incl. taxes
+
+  # Build the invoice totals by adding up the line-item columns above.
+  derive_totals:
+    subtotal: {sum: line_total}          # pre-tax total across all lines
+    total:    {sum: amount}              # grand total incl. taxes
+    tax:      {diff: [total, subtotal]}  # the difference is the tax

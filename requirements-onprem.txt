@@ -1,0 +1,20 @@
+# Fully on-premise install — no cloud AI SDKs, no outbound network needed.
+# Install with:  pip install -r requirements-onprem.txt
+pdfplumber>=0.11.0      # PDF text + coordinate extraction (pure Python)
+pydantic>=2.0           # data models / validation
+openpyxl>=3.1           # Excel output
+pyyaml>=6.0             # templates, rules, settings
+streamlit>=1.36         # local web UI (binds to localhost)
+streamlit-image-coordinates>=0.1.9   # click-to-pick in the template builder
+Pillow>=10.0            # page preview images for the builder
+reportlab>=4.0          # only needed to generate the sample invoices
+num2words>=0.5.13       # amount-in-words on sample invoices
+
+# NOT included (cloud AI SDKs) — install only if you want the AI mode:
+#   anthropic
+#   openai            <- also used to talk to a LOCAL Ollama server (OpenAI-compatible)
+#
+# For a local open-source model (Qwen etc.) you need:
+#   1. Ollama installed on the machine/network:  https://ollama.com
+#   2. pip install openai        (the client library; it talks to localhost, not the cloud)
+#   3. ollama pull qwen2.5:14b-instruct

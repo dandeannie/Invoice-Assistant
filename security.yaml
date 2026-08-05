@@ -1,0 +1,12 @@
+allow_cloud_ai: true
+redact_before_ai: false
+log_ai_calls: true
+max_file_mb: 25
+max_batch_files: 100
+max_ai_chars: 60000
+audit_log_enabled: true
+audit_log_max_rows: 20000
+ocr_enabled: true
+ocr_dpi: 300
+ocr_min_chars: 50
+ocr_min_confidence: 0.5
