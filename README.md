@@ -1,4 +1,4 @@
-# 🧾 Invoice Extractor
+# Invoice Extractor
 
 ![CI](https://github.com/jainmokshit1-byte/invoice-extractor/actions/workflows/ci.yml/badge.svg?branch=diya)
 
@@ -32,14 +32,14 @@ Extract structured data from **any PDF invoice** — digital or scanned — usin
 
 ---
 
-## ⚠️ Python Version Requirement
+## Python Version Requirement
 
 > **You must use Python 3.12.** Python 3.13 and 3.14 are NOT supported.
 
 `rapidocr-onnxruntime` has no pre-built wheel for Python 3.13 or 3.14. Installing on those versions will fail or require compiling NumPy from source (which requires a C compiler).
 
 Download Python 3.12 from: https://www.python.org/downloads/release/python-3120/  
-✅ Check **"Add Python to PATH"** during installation.
+Ensure you check **"Add Python to PATH"** during installation.
 
 ---
 

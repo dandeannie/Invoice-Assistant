@@ -2,109 +2,157 @@
 Security & Logs — privacy controls for the AI features, upload limits, and the
 audit trail of everything the tool has done.
 """
+import os
 import streamlit as st
 
 from extractor.security import (load_settings, save_settings, read_audit, clear_audit,
-                                redact_text, log_event, AUDIT_PATH)
-from extractor.ui import apply_theme, hero
+                                redact_text, AUDIT_PATH)
+import importlib
+import extractor.ui
+importlib.reload(extractor.ui)
 
-st.set_page_config(page_title="Security & Logs", page_icon="🔒", layout="wide")
+from extractor.ui import (apply_theme, top_nav_bar, hero_card, section_header,
+                          metric_card, status_pill, ICON_SHIELD)
+
+st.set_page_config(page_title="Security & Logs - Invoice AI", page_icon=":material/security:", layout="wide")
 apply_theme()
-hero("🔒 Security & Logs",
-     "Control what leaves this machine, cap what the AI can be sent, and review "
-     "an audit trail of every action.", "#6B2D5C")
+top_nav_bar("SECURITY & AUDIT TRAIL", search_placeholder="Search security controls...", badge_text="Zero-Telemetry")
 
 s = load_settings()
+rows = read_audit(400)
+cloud_status = "ENABLED" if s.get("allow_cloud_ai", True) else "BLOCKED"
+redact_status = "ACTIVE" if s.get("redact_before_ai", False) else "OFF"
+
+hero_card(
+    title="Security & Audit Controls",
+    subtitle="Enterprise privacy guardrails, PII redaction, and local tamper-evident audit logging.",
+    meta_tags=["Air-Gapped Ready", "PII Redactor", "Zero External Telemetry"],
+    stat_items=[
+        (cloud_status, "Cloud AI Policy"),
+        (redact_status, "PII Redaction"),
+        (f"{s.get('max_file_mb', 25)} MB", "Max Upload Limit"),
+        (str(len(rows)), "Audit Events Logged")
+    ],
+    desc="Template extraction runs completely offline. Security policies govern AI requests, sanitize file uploads, and maintain strict traceability without leaking credentials.",
+    color="#BAE6FD",
+    icon=ICON_SHIELD
+)
 
 # ---------------- AI privacy ----------------
-st.subheader("AI privacy controls")
-st.caption("Template extraction is always fully offline. These settings apply to the "
-           "AI (Extract Any Invoice) features only.")
+section_header("01", "AI Privacy & Redaction Guardrails")
+st.caption("Template-based parsing is strictly local. These settings apply whenever an LLM engine is invoked.")
 
 c1, c2 = st.columns(2)
 allow_cloud = c1.checkbox(
-    "Allow cloud AI providers", value=bool(s.get("allow_cloud_ai", True)),
-    help="Turn OFF to block every provider except a local model (Ollama). "
-         "Nothing then leaves your machine.")
+    "Allow cloud AI providers",
+    value=bool(s.get("allow_cloud_ai", True)),
+    help="Turn OFF to block every provider except local runners (Ollama / vLLM). No data leaves your machine."
+)
 redact = c2.checkbox(
-    "Redact personal data before sending to a cloud model",
+    "Redact personal/banking data before cloud transmission",
     value=bool(s.get("redact_before_ai", False)),
-    help="Removes emails, phone numbers, bank/card/IBAN numbers. Invoice amounts, "
-         "dates and item descriptions are untouched.")
+    help="Strips emails, phone numbers, bank accounts, and card numbers. Invoice amounts, dates, and item lines remain intact."
+)
 
 if not allow_cloud:
-    st.success("🔒 Offline mode: cloud AI is blocked. Only a local model can be used.")
+    st.info("Offline Enforcement: Cloud AI requests are hard-blocked. Only local host addresses are permitted.", icon=":material/lock:")
 
-max_chars = st.slider("Maximum characters sent to the AI per invoice", 5000, 200000,
-                      int(s.get("max_ai_chars", 60000)), step=5000,
-                      help="Caps cost and limits how much of a document can ever leave.")
+max_chars = st.slider(
+    "Maximum characters transmitted per document",
+    5000, 200000, int(s.get("max_ai_chars", 60000)), step=5000,
+    help="Sets an upper bound on token consumption and limits data payload size."
+)
 
-with st.expander("Preview redaction on sample text"):
-    sample = st.text_area("Sample", "Contact: procurement@benchmarkcs.in  Ph: +91 44 6690 1200\n"
-                                    "A/c No: 50200098765432  IFSC: HDFC0002211\nTotal: 37,94,980.00",
-                          height=110)
+with st.expander("Test PII Redaction Engine", icon=":material/science:"):
+    sample = st.text_area(
+        "Input text with simulated sensitive information",
+        "Contact: accounts.pay@benchmarkcs.in  Ph: +91 44 6690 1200\n"
+        "Bank A/c: 50200098765432  IFSC: HDFC0002211  Total Due: 37,94,980.00",
+        height=100
+    )
     if sample:
         out, n = redact_text(sample)
-        st.code(out)
-        st.caption(f"{n} identifier(s) would be removed. Amounts are preserved.")
+        st.code(out, language="text")
+        st.caption(f"{n} sensitive identifier(s) neutralized. Financial totals and structural labels preserved.")
 
 st.divider()
 
 # ---------------- upload limits ----------------
-st.subheader("Upload limits")
+section_header("02", "Upload & File Safety")
 u1, u2 = st.columns(2)
-max_mb = u1.number_input("Maximum file size (MB)", 1, 200, int(s.get("max_file_mb", 25)))
-max_batch = u2.number_input("Maximum files per batch", 1, 1000, int(s.get("max_batch_files", 100)))
-st.caption("Uploads are also checked for a real PDF signature, and file names are "
-           "sanitised so nothing can be written outside the output folder.")
+max_mb = u1.number_input("Maximum allowed file size (MB)", 1, 200, int(s.get("max_file_mb", 25)))
+max_batch = u2.number_input("Maximum files permitted per batch", 1, 1000, int(s.get("max_batch_files", 100)))
+st.caption("All incoming documents are verified for magic byte PDF signatures (%PDF) and file paths are sanitized against directory traversal.")
 
 st.divider()
 
 # ---------------- audit log ----------------
-st.subheader("Audit trail")
+section_header("03", "Audit Trail & Activity Log")
 a1, a2 = st.columns(2)
-audit_on = a1.checkbox("Keep an audit log", value=bool(s.get("audit_log_enabled", True)))
-max_rows = a2.number_input("Maximum rows kept", 1000, 200000,
-                           int(s.get("audit_log_max_rows", 20000)), step=1000)
+audit_on = a1.checkbox("Record security events in audit log", value=bool(s.get("audit_log_enabled", True)))
+max_rows = a2.number_input("Maximum log entries retained", 1000, 200000, int(s.get("audit_log_max_rows", 20000)), step=1000)
 
-if st.button("💾 Save security settings", type="primary"):
-    save_settings({"allow_cloud_ai": allow_cloud, "redact_before_ai": redact,
-                   "log_ai_calls": True, "max_file_mb": int(max_mb),
-                   "max_batch_files": int(max_batch), "max_ai_chars": int(max_chars),
-                   "audit_log_enabled": audit_on, "audit_log_max_rows": int(max_rows)})
-    st.success("Security settings saved.")
+if st.button("Save Security Policy", icon=":material/save:", type="primary"):
+    save_settings({
+        "allow_cloud_ai": allow_cloud,
+        "redact_before_ai": redact,
+        "log_ai_calls": True,
+        "max_file_mb": int(max_mb),
+        "max_batch_files": int(max_batch),
+        "max_ai_chars": int(max_chars),
+        "audit_log_enabled": audit_on,
+        "audit_log_max_rows": int(max_rows)
+    })
+    st.success("Security policy updated and cached.", icon=":material/check:")
+    st.rerun()
 
-rows = read_audit(400)
+st.markdown("<br>", unsafe_allow_html=True)
+
 if not rows:
-    st.info("No activity recorded yet.")
+    st.info("No audit events recorded yet.")
 else:
-    st.caption(f"Most recent {len(rows)} events (newest first). Secrets are never logged.")
-    ev = sorted({r.get("event", "") for r in rows})
-    pick = st.multiselect("Filter by event", ev, default=[])
+    st.markdown(f"**Showing {len(rows)} latest audit records** (newest first). *Secrets and API keys are strictly scrubbed.*")
+    ev = sorted({r.get("event", "") for r in rows if r.get("event")})
+    pick = st.multiselect("Filter by event category", ev, default=[])
     shown = [r for r in rows if not pick or r.get("event") in pick]
-    st.dataframe(shown, hide_index=True, use_container_width=True, height=340)
+    st.dataframe(shown, hide_index=True, use_container_width=True, height=320)
+
     d1, d2 = st.columns(2)
-    with open(AUDIT_PATH, "rb") as f:
-        d1.download_button("⬇ Download audit log (CSV)", f, "audit_log.csv", "text/csv",
-                           use_container_width=True)
-    if d2.button("Clear audit log", use_container_width=True):
+    # Safe CSV generation that avoids FileNotFoundError
+    csv_bytes = b""
+    if os.path.exists(AUDIT_PATH):
+        try:
+            with open(AUDIT_PATH, "rb") as f:
+                csv_bytes = f.read()
+        except Exception:
+            csv_bytes = b""
+    if not csv_bytes and rows:
+        import io, csv
+        buf = io.StringIO()
+        w = csv.DictWriter(buf, fieldnames=list(rows[0].keys()))
+        w.writeheader()
+        w.writerows(rows)
+        csv_bytes = buf.getvalue().encode("utf-8")
+
+    d1.download_button(
+        "Download Audit Log (CSV)",
+        data=csv_bytes,
+        file_name="audit_log.csv",
+        mime="text/csv",
+        icon=":material/download:",
+        use_container_width=True,
+        disabled=len(csv_bytes) == 0
+    )
+    if d2.button("Clear Audit Log", icon=":material/delete:", use_container_width=True):
         clear_audit()
         st.rerun()
 
 st.divider()
-with st.expander("What this tool does to keep your data safe"):
+with st.expander("Enterprise Defense-in-Depth Architecture", icon=":material/verified_user:"):
     st.markdown("""
-- **Templates run fully offline.** No network access is needed or used.
-- **API keys are never written to disk** by the tool, never logged, and shown masked.
-  They live only in the browser session.
-- **Untrusted document text is fenced.** A PDF could contain text designed to hijack an
-  AI model ("ignore previous instructions..."). Document text is wrapped and explicitly
-  labelled as data, and the model's reply must be strict JSON.
-- **Every AI answer is verified.** Extracted totals are reconciled against the figures
-  printed on the PDF, so a hallucinated or manipulated number is flagged, not trusted.
-- **Uploads are validated** (real-PDF signature, size caps) and file names sanitised.
-- **Writes stay inside the output folder** — path traversal is refused.
-- **The audit log records actions, never content** — no invoice text, no keys.
-- **Nothing is sent anywhere except the AI provider you choose**, and only when you use
-  an AI feature. There is no telemetry.
+- **Air-Gapped Core Engine:** Rule-based template extraction operates entirely offline with zero network connectivity.
+- **Strict Key Isolation:** API credentials are never written to disk or logged, and exist solely in the browser session memory.
+- **Prompt Injection Fencing:** Document text sent to LLMs is quarantined inside `<INVOICE_DATA>` tags with explicit anti-hijacking directives.
+- **Arithmetic Reconciliation:** Extracted financial figures are validated against mathematical sums to catch model hallucinations.
+- **Path-Traversal Protection:** File creation and downloads are hard-jailed inside designated output directories.
 """)

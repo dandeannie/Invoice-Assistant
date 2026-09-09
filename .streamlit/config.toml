@@ -1,17 +1,17 @@
 [theme]
 base = "light"
-primaryColor = "#2F5B8F"
-backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#EEF3F9"
-textColor = "#1A2733"
+primaryColor = "#F8CD53"
+backgroundColor = "#FBF9F1"
+secondaryBackgroundColor = "#A3D9B8"
+textColor = "#121212"
 font = "sans serif"
 
 [browser]
 gatherUsageStats = false
 
+[client]
+toolbarMode = "minimal"
+
 [server]
 headless = false
 port = 8501
-
-[client]
-toolbarMode = "minimal"
